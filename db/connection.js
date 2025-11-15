@@ -3,17 +3,19 @@ import pkg from "pg";
 import dotenv from "dotenv";
 
 dotenv.config();
+
 const { Pool } = pkg;
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: process.env.DATABASE_URL || "postgresql://dbrestaurante_2uxd_user:nL6HKXDr9GVrmCx7hWeCzwueSDA36LFR@dpg-d3umabv5r7bs73fl227g-a.oregon-postgres.render.com/dbrestaurante_2uxd",
   ssl: {
-    rejectUnauthorized: false, // necesario para Render
+    rejectUnauthorized: false,
   },
 });
 
+// Probar conexión
 pool.connect()
-  .then(() => console.log("✅ Conectado a PostgreSQL"))
+  .then(() => console.log("✅ Conectado a PostgreSQL en Render"))
   .catch((err) => console.error("❌ Error de conexión a PostgreSQL:", err));
 
 export default pool;

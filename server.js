@@ -1,22 +1,37 @@
-// server.js
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import menuRoutes from "./routes/menuRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
+import carritoRoutes from "./routes/carritoRoutes.js"; // ✅ NUEVO
 
-// Cargar variables de entorno (.env)
 dotenv.config();
 
 const app = express();
+
+// Middlewares
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Rutas
+// ✅ Endpoint básico
+app.get("/", (req, res) => {
+  res.send("✅ API del restaurante funcionando correctamente!");
+});
+
+// ✅ Rutas del menú
 app.use("/api/menu", menuRoutes);
 
-// Puerto dinámico (Render usa uno propio)
-const PORT = process.env.PORT || 4000;
+// ✅ Rutas de autenticación
+app.use("/api/auth", authRoutes);
 
-app.listen(PORT, () => {
-  console.log(`✅ Servidor corriendo en el puerto ${PORT}`);
-});
+// ✅ Rutas del carrito
+app.use("/api/carrito", carritoRoutes); // ✅ NUEVO
+
+// Configurar puerto
+const PORT = process.env.PORT || 3000;
+
+// ✅ Iniciar servidor
+app.listen(PORT, () =>
+  console.log(`🚀 Servidor online en http://localhost:${PORT}`)
+);
