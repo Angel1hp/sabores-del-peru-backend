@@ -5,8 +5,7 @@ import {
   agregarAlCarrito,
   actualizarCantidad,
   eliminarDelCarrito,
-  vaciarCarrito,
-  procesarCheckout
+  vaciarCarrito
 } from "../controllers/carritoController.js";
 
 const router = express.Router();
@@ -19,11 +18,6 @@ router.post("/", agregarAlCarrito);                   // POST /api/carrito
 router.put("/:id", actualizarCantidad);              // PUT /api/carrito/:id
 router.delete("/:id", eliminarDelCarrito);           // DELETE /api/carrito/:id
 router.delete("/cliente/:clienteId", vaciarCarrito); // DELETE /api/carrito/cliente/:clienteId
-
-/* ==========================
-   CHECKOUT
-========================== */
-router.post("/checkout", procesarCheckout);          // POST /api/carrito/checkout
 
 /* ==========================
    EXPORTAR

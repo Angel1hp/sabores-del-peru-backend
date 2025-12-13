@@ -1,11 +1,14 @@
-// controllers/authController.js
+// controllers/authController.js - CON ENVÍO DE EMAILS
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import pool from "../db/connection.js";
+import { enviarEmailBienvenida } from "../services/emailService.js"; // ✅ IMPORTAR
 
 const SECRET = process.env.JWT_SECRET || "CAMBIAR_URGENTE_PARA_PRODUCCION";
 
-// Registrar cliente
+// =====================
+// REGISTRAR CLIENTE CON EMAIL DE BIENVENIDA
+// =====================
 export const registrarCliente = async (req, res) => {
   const {
     nombre,
@@ -40,6 +43,15 @@ export const registrarCliente = async (req, res) => {
       });
     }
 
+    // Validar formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Formato de correo electrónico inválido" 
+      });
+    }
+
     // Validar formato de RUC si se proporciona
     if (ruc && ruc !== '' && !/^[0-9]{11}$/.test(ruc)) {
       return res.status(400).json({ 
@@ -48,7 +60,6 @@ export const registrarCliente = async (req, res) => {
       });
     }
 
-    // Convertir RUC vacío a null
     const rucFinal = (ruc && ruc.trim() !== '') ? ruc.trim() : null;
 
     // Verificar duplicados
@@ -105,10 +116,28 @@ export const registrarCliente = async (req, res) => {
       ]
     );
 
+    const clienteCreado = result.rows[0];
+    console.log("✅ Cliente registrado:", clienteCreado);
+
+    // ✅ ENVIAR EMAIL DE BIENVENIDA (asíncrono, no bloqueante)
+    const nombreCompleto = `${nombre} ${apellido}`;
+    enviarEmailBienvenida(email, nombreCompleto)
+      .then(resultado => {
+        if (resultado.success) {
+          console.log("📧 Email de bienvenida enviado a:", email);
+        } else {
+          console.error("❌ Error al enviar email:", resultado.error);
+        }
+      })
+      .catch(err => {
+        console.error("❌ Error en envío de email:", err);
+      });
+
+    // Responder inmediatamente (no esperar el email)
     res.status(201).json({ 
       success: true,
-      message: "Cliente registrado correctamente ✅",
-      cliente: result.rows[0]
+      message: "Cliente registrado correctamente ✅ Te hemos enviado un correo de bienvenida.",
+      cliente: clienteCreado
     });
 
   } catch (error) {
@@ -128,7 +157,9 @@ export const registrarCliente = async (req, res) => {
   }
 };
 
-// Login
+// =====================
+// LOGIN
+// =====================
 export const loginCliente = async (req, res) => {
   const { usuario, contrasena } = req.body;
 
@@ -198,7 +229,9 @@ export const loginCliente = async (req, res) => {
   }
 };
 
-// Verificar sesión
+// =====================
+// VERIFICAR SESIÓN
+// =====================
 export const verificarSesion = async (req, res) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
@@ -239,52 +272,41 @@ export const verificarSesion = async (req, res) => {
 };
 
 // =====================
-// OBTENER DATOS DEL FORMULARIO (MEJORADO)
+// OBTENER DATOS DEL FORMULARIO
 // =====================
 export const obtenerDatosFormulario = async (req, res) => {
   try {
-    // Obtener departamentos
     const departamentos = await pool.query(`
       SELECT id, nombre
       FROM departamento
       ORDER BY nombre ASC
     `);
 
-    // Obtener provincias
     const provincias = await pool.query(`
       SELECT id, nombre, departamento_id
       FROM provincia
       ORDER BY nombre ASC
     `);
 
-    // Obtener distritos
     const distritos = await pool.query(`
       SELECT id, nombre, provincia_id
       FROM distrito
       ORDER BY nombre ASC
     `);
     
-    // Obtener géneros
     const generos = await pool.query(`
       SELECT id, nombre 
       FROM genero 
       ORDER BY id
     `);
     
-    // Obtener tipos de documento
     const tiposDocumento = await pool.query(`
       SELECT id, nombre 
       FROM tipo_documento 
       ORDER BY id
     `);
 
-    console.log("✅ Datos de formulario cargados:", {
-      departamentos: departamentos.rows.length,
-      provincias: provincias.rows.length,
-      distritos: distritos.rows.length,
-      generos: generos.rows.length,
-      tiposDocumento: tiposDocumento.rows.length
-    });
+    console.log("✅ Datos de formulario cargados");
 
     res.json({
       success: true,
@@ -303,6 +325,229 @@ export const obtenerDatosFormulario = async (req, res) => {
     res.status(500).json({ 
       success: false,
       message: "Error al obtener datos del formulario" 
+    });
+  }
+};
+
+// =====================
+// OBTENER DATOS COMPLETOS DEL CLIENTE
+// =====================
+export const obtenerCliente = async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    const result = await pool.query(
+      `SELECT 
+        c.id, 
+        c.nombre, 
+        c.apellido, 
+        c.email, 
+        c.usuario, 
+        c.telefono, 
+        c.direccion, 
+        c.ruc, 
+        c.numero_documento,
+        c.distrito_id,
+        d.nombre as distrito, 
+        p.nombre as provincia,
+        p.id as provincia_id,
+        dep.nombre as departamento,
+        dep.id as departamento_id
+       FROM cliente c
+       LEFT JOIN distrito d ON c.distrito_id = d.id
+       LEFT JOIN provincia p ON d.provincia_id = p.id
+       LEFT JOIN departamento dep ON p.departamento_id = dep.id
+       WHERE c.id = $1`,
+      [id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Cliente no encontrado"
+      });
+    }
+    
+    res.json({
+      success: true,
+      cliente: result.rows[0]
+    });
+    
+  } catch (error) {
+    console.error("❌ Error obteniendo cliente:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error al obtener datos del cliente"
+    });
+  }
+};
+
+// =====================
+// ACTUALIZAR DATOS DEL CLIENTE
+// =====================
+export const actualizarCliente = async (req, res) => {
+  const { id } = req.params;
+  const { nombre, apellido, email, telefono, direccion, distrito_id, ruc } = req.body;
+
+  try {
+    const updates = [];
+    const values = [];
+    let paramCount = 1;
+
+    if (nombre !== undefined) {
+      updates.push(`nombre = $${paramCount}`);
+      values.push(nombre);
+      paramCount++;
+    }
+    if (apellido !== undefined) {
+      updates.push(`apellido = $${paramCount}`);
+      values.push(apellido);
+      paramCount++;
+    }
+    if (email !== undefined) {
+      updates.push(`email = $${paramCount}`);
+      values.push(email);
+      paramCount++;
+    }
+    if (telefono !== undefined) {
+      updates.push(`telefono = $${paramCount}`);
+      values.push(telefono);
+      paramCount++;
+    }
+    if (direccion !== undefined) {
+      updates.push(`direccion = $${paramCount}`);
+      values.push(direccion);
+      paramCount++;
+    }
+    if (distrito_id !== undefined) {
+      updates.push(`distrito_id = $${paramCount}`);
+      values.push(distrito_id);
+      paramCount++;
+    }
+    if (ruc !== undefined) {
+      if (ruc && ruc !== '' && !/^[0-9]{11}$/.test(ruc)) {
+        return res.status(400).json({ 
+          success: false,
+          message: "El RUC debe tener exactamente 11 dígitos numéricos" 
+        });
+      }
+      
+      const rucFinal = (ruc && ruc.trim() !== '') ? ruc.trim() : null;
+      updates.push(`ruc = $${paramCount}`);
+      values.push(rucFinal);
+      paramCount++;
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'No hay datos para actualizar' 
+      });
+    }
+
+    values.push(id);
+
+    const query = `
+      UPDATE cliente 
+      SET ${updates.join(', ')}
+      WHERE id = $${paramCount}
+      RETURNING id, usuario, nombre, apellido, email, telefono, direccion, numero_documento, ruc, distrito_id
+    `;
+
+    const result = await pool.query(query, values);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Cliente no encontrado' 
+      });
+    }
+
+    res.json({ 
+      success: true, 
+      message: 'Cliente actualizado exitosamente',
+      cliente: result.rows[0]
+    });
+  } catch (error) {
+    console.error('❌ Error al actualizar cliente:', error);
+    
+    if (error.code === '23505') {
+      if (error.constraint === 'unique_ruc') {
+        return res.status(400).json({ 
+          success: false,
+          message: "El RUC ya está registrado por otro usuario" 
+        });
+      }
+      if (error.constraint === 'cliente_email_key') {
+        return res.status(400).json({ 
+          success: false,
+          message: "El email ya está registrado por otro usuario" 
+        });
+      }
+    }
+    
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error al actualizar cliente',
+      error: error.message 
+    });
+  }
+};
+
+// =====================
+// CAMBIAR CONTRASEÑA
+// =====================
+export const cambiarContrasena = async (req, res) => {
+  const { id } = req.params;
+  const { currentPassword, newPassword } = req.body;
+
+  try {
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'La nueva contraseña debe tener al menos 6 caracteres' 
+      });
+    }
+
+    const clienteResult = await pool.query(
+      'SELECT contrasena FROM cliente WHERE id = $1',
+      [id]
+    );
+
+    if (clienteResult.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Cliente no encontrado' 
+      });
+    }
+
+    const cliente = clienteResult.rows[0];
+    const passwordMatch = await bcrypt.compare(currentPassword, cliente.contrasena);
+
+    if (!passwordMatch) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'La contraseña actual es incorrecta' 
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await pool.query(
+      'UPDATE cliente SET contrasena = $1 WHERE id = $2',
+      [hashedPassword, id]
+    );
+
+    res.json({ 
+      success: true, 
+      message: 'Contraseña actualizada exitosamente' 
+    });
+  } catch (error) {
+    console.error('❌ Error al cambiar contraseña:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error al cambiar contraseña',
+      error: error.message 
     });
   }
 };

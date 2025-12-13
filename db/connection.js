@@ -7,7 +7,7 @@ dotenv.config();
 const { Pool } = pkg;
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || "postgresql://dbrestaurante_2uxd_user:nL6HKXDr9GVrmCx7hWeCzwueSDA36LFR@dpg-d3umabv5r7bs73fl227g-a.oregon-postgres.render.com/dbrestaurante_2uxd",
+  connectionString: process.env.DATABASE_URL || "postgresql://dbrestaurante_2uxd_user:nL6HKXDr9GVrmCx7hWeCzwueSDA36LFR@dpg-d3umabv5r7bs73fl227g-a.oregon-postgres.render.com:5432/dbrestaurante_2uxd",
   ssl: {
     rejectUnauthorized: false,
   },

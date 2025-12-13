@@ -4,14 +4,27 @@ import {
   registrarCliente,
   loginCliente,
   verificarSesion,
-  obtenerDatosFormulario
+  obtenerDatosFormulario,
+  obtenerCliente,
+  actualizarCliente,    // ✅ Nueva
+  cambiarContrasena      // ✅ Nueva
 } from "../controllers/authController.js";
 
 const router = express.Router();
 
+// Autenticación
 router.post("/registro", registrarCliente);
 router.post("/login", loginCliente);
 router.get("/verificar", verificarSesion);
-router.get("/datos-formulario", obtenerDatosFormulario); // ← Asegúrate de tener esta línea
+
+// Datos de formulario
+router.get("/datos-formulario", obtenerDatosFormulario);
+
+// Cliente
+router.get("/cliente/:id", obtenerCliente);
+router.put("/actualizar/:id", actualizarCliente);        // ✅ Nueva ruta
+router.put("/cambiar-contrasena/:id", cambiarContrasena); // ✅ Nueva ruta
+
+console.log("✅ authRoutes configurado correctamente");
 
 export default router;
