@@ -25,8 +25,7 @@ const corsOptions = {
       'http://localhost:5500',
       'http://127.0.0.1:5173',
       'http://127.0.0.1:5500',
-      'https://raices-back.onrender.com', // ✅ Tu frontend en Render
-      // Agrega aquí tu URL de frontend cuando la tengas
+      'https://raices-front-nine.vercel.app', // ✅ Tu frontend en Vercel
     ];
 
     // Permitir peticiones sin origin (como Postman, Thunder Client)
