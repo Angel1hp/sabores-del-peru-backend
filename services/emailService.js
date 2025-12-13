@@ -164,7 +164,7 @@ export const enviarEmailBienvenida = async (destinatario, nombreCompleto) => {
             </div>
             
             <center>
-              <a href="http://localhost:5500/menu.html" class="cta-button">
+              <a href="https://raices-front-nine.vercel.app/menu.html" class="cta-button">
                 Explorar Nuestro Menú
               </a>
             </center>
@@ -382,7 +382,7 @@ export const enviarEmailConfirmacionPedido = async (
 // ✅ EMAIL DE RECUPERACIÓN DE CONTRASEÑA (para futuro)
 export const enviarEmailRecuperacion = async (destinatario, nombreCompleto, token) => {
   try {
-    const resetLink = `http://localhost:5500/reset-password.html?token=${token}`;
+    const resetLink = `https://raices-front-nine.vercel.app/reset-password.html?token=${token}`;
     
     const mailOptions = {
       from: {
