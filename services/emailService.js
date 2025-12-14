@@ -13,24 +13,33 @@ import nodemailer from 'nodemailer';
 
 // ✅ CONFIGURACIÓN DEL TRANSPORTADOR DE EMAIL
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT),
-  secure: false,
+  host: process.env.SMTP_HOST,          // smtp-relay.brevo.com
+  port: Number(process.env.SMTP_PORT),  // 587
+  secure: false,                        // STARTTLS
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  }
+    user: process.env.SMTP_USER,        // apikey
+    pass: process.env.SMTP_PASS         // SMTP KEY
+  },
+  tls: {
+    rejectUnauthorized: false
+  },
+
+  // 🔑 CLAVE PARA EVITAR ETIMEDOUT EN RENDER
+  connectionTimeout: 20000,
+  greetingTimeout: 20000,
+  socketTimeout: 30000
 });
 
 
-// ✅ VERIFICAR CONEXIÓN (opcional pero recomendado)
+
+/*// ✅ VERIFICAR CONEXIÓN (opcional pero recomendado)
 transporter.verify((error, success) => {
   if (error) {
     console.error('❌ Error al conectar con el servidor de email:', error);
   } else {
     console.log('✅ Servidor de email listo para enviar mensajes');
   }
-});
+});*/
 
 // =====================================================
 // PLANTILLAS DE EMAIL
