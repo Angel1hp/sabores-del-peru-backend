@@ -8,7 +8,7 @@ import nodemailer from 'nodemailer';
 // Configuración principal: Puerto 465 (SSL)
 const config465 = {
   host: 'smtp-relay.brevo.com',
-  port: 465,
+  port: 587,
   secure: true,
   auth: {
     user: process.env.BREVO_USER,
