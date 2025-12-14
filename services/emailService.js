@@ -94,8 +94,10 @@ export const enviarEmailConfirmacionPedido = async (
   ordenId,
   numeroComprobante,
   items,
-  total
-) => {
+  total,
+  tipo,
+  ruc
+  ) => {
   try {
     // Construir filas de productos
     const itemsHTML = items.map(item => {
@@ -142,6 +144,12 @@ export const enviarEmailConfirmacionPedido = async (
       <div style="background:#f0fdf4;border-left:4px solid #22c55e;padding:15px;margin:20px 0;">
         <p style="margin:0;"><strong>Comprobante:</strong> ${numeroComprobante}</p>
         <p style="margin:0;"><strong>Total:</strong> S/ ${Number(total).toFixed(2)}</p>
+         ${tipo === "factura" ? `
+    <p"margin:6px 0;"><strong>Tipo de comprobante:</strong> FACTURA</p>
+    <p"margin:6px 0;"><strong>RUC:</strong> ${ruc}</p>
+  ` : `
+    <p"margin:6px 0;"><strong>Tipo de comprobante:</strong> BOLETA</p>
+  `}
       </div>
 
       <h3>📦 Detalle del pedido</h3>

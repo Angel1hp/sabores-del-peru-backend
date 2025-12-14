@@ -230,7 +230,9 @@ export const procesarCheckout = async (req, res) => {
       orden_id,
       numeroComprobante,
       itemsConNombres,  // ✅ Usar itemsConNombres que tiene los nombres correctos
-      total
+      total,
+      tipo,   // ← comprobante_pago.tipo
+      ruc   
     )
       .then(resultado => {
         if (resultado.success) {
