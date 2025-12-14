@@ -1,21 +1,21 @@
 // services/emailService.js
 import SibApiV3Sdk from "sib-api-v3-sdk";
 
-// =====================================
-// CONFIGURACIÓN BREVO API (HTTP)
-// =====================================
+/* =====================================================
+   CONFIGURACIÓN BREVO API (HTTP)
+===================================================== */
 const client = SibApiV3Sdk.ApiClient.instance;
 
-// API Key desde Render
+// API KEY (desde Render)
 const apiKey = client.authentications["api-key"];
 apiKey.apiKey = process.env.BREVO_API_KEY;
 
 // API transaccional
 const api = new SibApiV3Sdk.TransactionalEmailsApi();
 
-// =====================================
-// EMAIL DE BIENVENIDA
-// =====================================
+/* =====================================================
+   EMAIL DE BIENVENIDA
+===================================================== */
 export const enviarEmailBienvenida = async (destinatario, nombreCompleto) => {
   try {
     await api.sendTransacEmail({
@@ -80,14 +80,14 @@ export const enviarEmailBienvenida = async (destinatario, nombreCompleto) => {
 
     return { success: true };
   } catch (error) {
-    console.error("❌ Brevo API error (bienvenida):", error.message);
+    console.error("❌ Error email bienvenida:", error.message);
     return { success: false, error: error.message };
   }
 };
 
-// =====================================
-// EMAIL DE CONFIRMACIÓN DE PEDIDO
-// =====================================
+/* =====================================================
+   EMAIL CONFIRMACIÓN DE PEDIDO
+===================================================== */
 export const enviarEmailConfirmacionPedido = async (
   destinatario,
   nombreCliente,
@@ -95,11 +95,11 @@ export const enviarEmailConfirmacionPedido = async (
   numeroComprobante,
   items,
   total,
-  tipo,
+  tipo_comprobante, // "factura" | "boleta"
   ruc
-  ) => {
+) => {
   try {
-    // Construir filas de productos
+    /* ---------- Construir tabla de items ---------- */
     const itemsHTML = items.map(item => {
       const nombre = item.nombre || item.producto_nombre || "Producto";
       const precio = Number(item.precio_unitario || item.precio || 0);
@@ -142,14 +142,15 @@ export const enviarEmailConfirmacionPedido = async (
       <p>Tu pedido <strong>#${ordenId}</strong> fue confirmado.</p>
 
       <div style="background:#f0fdf4;border-left:4px solid #22c55e;padding:15px;margin:20px 0;">
-        <p style="margin:0;"><strong>Comprobante:</strong> ${numeroComprobante}</p>
-        <p style="margin:0;"><strong>Total:</strong> S/ ${Number(total).toFixed(2)}</p>
-         ${tipo === "factura" ? `
-    <p"margin:6px 0;"><strong>Tipo de comprobante:</strong> FACTURA</p>
-    <p"margin:6px 0;"><strong>RUC:</strong> ${ruc}</p>
-  ` : `
-    <p"margin:6px 0;"><strong>Tipo de comprobante:</strong> BOLETA</p>
-  `}
+        <p style="margin:6px 0;"><strong>Comprobante:</strong> ${numeroComprobante}</p>
+        <p style="margin:6px 0;"><strong>Total:</strong> S/ ${Number(total).toFixed(2)}</p>
+
+        ${tipo_comprobante === "factura" ? `
+          <p style="margin:6px 0;"><strong>Tipo de comprobante:</strong> FACTURA</p>
+          <p style="margin:6px 0;"><strong>RUC:</strong> ${ruc}</p>
+        ` : `
+          <p style="margin:6px 0;"><strong>Tipo de comprobante:</strong> BOLETA</p>
+        `}
       </div>
 
       <h3>📦 Detalle del pedido</h3>
@@ -193,7 +194,7 @@ export const enviarEmailConfirmacionPedido = async (
 
     return { success: true };
   } catch (error) {
-    console.error("❌ Brevo API error (pedido):", error.message);
+    console.error("❌ Error email pedido:", error.message);
     return { success: false, error: error.message };
   }
 };
