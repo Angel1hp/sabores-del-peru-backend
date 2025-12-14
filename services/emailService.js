@@ -1,26 +1,29 @@
-// services/emailService.js - VERSIÓN BREVO (RECOMENDADO)
+// services/emailService.js - VERSIÓN BREVO CON SSL (Para Render)
 import nodemailer from 'nodemailer';
 
 // =====================================================
-// CONFIGURACIÓN CON BREVO (antes Sendinblue)
+// CONFIGURACIÓN CON BREVO - Puerto 465 SSL
 // =====================================================
 const transporter = nodemailer.createTransport({
   host: 'smtp-relay.brevo.com',
-  port: 456,
-  secure: true,
+  port: 465,                    // ✅ Puerto 465 en lugar de 587
+  secure: true,                 // ✅ true para puerto 465
   auth: {
-    user: process.env.BREVO_USER,      // Tu email verificado en Brevo
-    pass: process.env.BREVO_API_KEY    // Tu API Key de Brevo
+    user: process.env.BREVO_USER,
+    pass: process.env.BREVO_API_KEY
+  },
+  tls: {
+    rejectUnauthorized: false   // ✅ Para evitar problemas de certificados
   }
 });
 
 // Verificar conexión al iniciar
 transporter.verify((error, success) => {
   if (error) {
-    console.error('❌ Error al conectar con Brevo:', error);
-    console.log('Verifica que BREVO_USER y BREVO_API_KEY estén configurados en Render');
+    console.error('❌ Error al conectar con Brevo:', error.message);
+    console.log('⚠️  Verifica que BREVO_USER y BREVO_API_KEY estén configurados en Render');
   } else {
-    console.log('✅ Brevo listo para enviar emails');
+    console.log('✅ Brevo listo para enviar emails (Puerto 465 SSL)');
     console.log('📧 Emails se enviarán desde:', process.env.BREVO_USER);
   }
 });
@@ -110,23 +113,12 @@ export const enviarEmailBienvenida = async (destinatario, nombreCompleto) => {
               font-weight: bold;
               font-size: 16px;
             }
-            .cta-button:hover {
-              background: #c19d2e;
-            }
             .footer {
               background: #f0f0f0;
               padding: 25px;
               text-align: center;
               color: #666;
               font-size: 14px;
-            }
-            .social-links {
-              margin: 15px 0;
-            }
-            .social-links a {
-              margin: 0 10px;
-              color: #d4af37;
-              text-decoration: none;
             }
           </style>
         </head>
@@ -206,11 +198,6 @@ export const enviarEmailBienvenida = async (destinatario, nombreCompleto) => {
             </div>
             
             <div class="footer">
-              <div class="social-links">
-                <a href="#">Facebook</a> |
-                <a href="#">Instagram</a> |
-                <a href="#">Twitter</a>
-              </div>
               <p>
                 © 2024 Raíces Restaurant<br>
                 Lima, Perú
@@ -484,6 +471,6 @@ export const verificarConfiguracion = async () => {
   }
 };
 
-console.log('✅ Servicio de email configurado con Brevo');
+console.log('✅ Servicio de email configurado con Brevo (Puerto 465 SSL)');
 
 export default transporter;
