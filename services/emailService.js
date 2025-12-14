@@ -15,15 +15,18 @@ import nodemailer from 'nodemailer';
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
   port: 587,
-  secure: false, // IMPORTANTE
+  secure: false,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD
   },
-  tls: {
-    rejectUnauthorized: false
-  }
+
+  // 👇 IMPORTANTE PARA RENDER
+  connectionTimeout: 15000,
+  greetingTimeout: 15000,
+  socketTimeout: 20000
 });
+
 
 // ✅ VERIFICAR CONEXIÓN (opcional pero recomendado)
 transporter.verify((error, success) => {
