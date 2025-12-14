@@ -1,17 +1,21 @@
+// services/emailService.js
 import SibApiV3Sdk from "sib-api-v3-sdk";
 
+// =====================================
+// CONFIGURACIÓN BREVO API (HTTP)
+// =====================================
 const client = SibApiV3Sdk.ApiClient.instance;
 
-// API KEY desde Render
+// API Key desde Render
 const apiKey = client.authentications["api-key"];
 apiKey.apiKey = process.env.BREVO_API_KEY;
 
 // API transaccional
 const api = new SibApiV3Sdk.TransactionalEmailsApi();
 
-// ============================
-// EMAIL BIENVENIDA
-// ============================
+// =====================================
+// EMAIL DE BIENVENIDA
+// =====================================
 export const enviarEmailBienvenida = async (destinatario, nombreCompleto) => {
   try {
     await api.sendTransacEmail({
@@ -70,19 +74,20 @@ export const enviarEmailBienvenida = async (destinatario, nombreCompleto) => {
 
   </div>
 </body>
-</html>`
+</html>
+      `
     });
 
     return { success: true };
   } catch (error) {
-    console.error("❌ Brevo API error:", error.message);
+    console.error("❌ Brevo API error (bienvenida):", error.message);
     return { success: false, error: error.message };
   }
 };
 
-// ============================
-// EMAIL CONFIRMACIÓN PEDIDO
-// ============================
+// =====================================
+// EMAIL DE CONFIRMACIÓN DE PEDIDO
+// =====================================
 export const enviarEmailConfirmacionPedido = async (
   destinatario,
   nombreCliente,
@@ -92,6 +97,23 @@ export const enviarEmailConfirmacionPedido = async (
   total
 ) => {
   try {
+    // Construir filas de productos
+    const itemsHTML = items.map(item => {
+      const nombre = item.nombre || item.producto_nombre || "Producto";
+      const precio = Number(item.precio_unitario || item.precio || 0);
+      const cantidad = Number(item.cantidad || 1);
+      const subtotal = precio * cantidad;
+
+      return `
+        <tr>
+          <td style="padding:10px;border-bottom:1px solid #e5e7eb;">${nombre}</td>
+          <td style="padding:10px;text-align:center;border-bottom:1px solid #e5e7eb;">${cantidad}</td>
+          <td style="padding:10px;text-align:right;border-bottom:1px solid #e5e7eb;">S/ ${precio.toFixed(2)}</td>
+          <td style="padding:10px;text-align:right;border-bottom:1px solid #e5e7eb;">S/ ${subtotal.toFixed(2)}</td>
+        </tr>
+      `;
+    }).join("");
+
     await api.sendTransacEmail({
       sender: {
         name: "Raíces Restaurant",
@@ -107,7 +129,7 @@ export const enviarEmailConfirmacionPedido = async (
 </head>
 <body style="font-family:Arial;background:#f4f4f4;padding:20px;">
   <div style="max-width:600px;margin:auto;background:#ffffff;border-radius:10px;overflow:hidden;">
-    
+
     <div style="background:#22c55e;color:#fff;padding:25px;text-align:center;">
       <h1 style="margin:0;">✅ Pedido confirmado</h1>
       <p style="margin:5px 0;">Raíces Restaurant</p>
@@ -163,7 +185,7 @@ export const enviarEmailConfirmacionPedido = async (
 
     return { success: true };
   } catch (error) {
-    console.error("❌ Brevo API error:", error.message);
+    console.error("❌ Brevo API error (pedido):", error.message);
     return { success: false, error: error.message };
   }
 };
