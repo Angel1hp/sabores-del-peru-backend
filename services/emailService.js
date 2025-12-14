@@ -13,18 +13,13 @@ import nodemailer from 'nodemailer';
 
 // ✅ CONFIGURACIÓN DEL TRANSPORTADOR DE EMAIL
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT),
   secure: false,
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD
-  },
-
-  // 👇 IMPORTANTE PARA RENDER
-  connectionTimeout: 15000,
-  greetingTimeout: 15000,
-  socketTimeout: 20000
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS
+  }
 });
 
 
@@ -47,7 +42,8 @@ export const enviarEmailBienvenida = async (destinatario, nombreCompleto) => {
     const mailOptions = {
       from: {
         name: 'Raíces - Restaurante',
-        address: process.env.EMAIL_USER
+        address: process.env.EMAIL_FROM
+
       },
       to: destinatario,
       subject: '¡Bienvenido a Raíces! 🎉',
@@ -251,7 +247,8 @@ export const enviarEmailConfirmacionPedido = async (
     const mailOptions = {
       from: {
         name: 'Raíces - Restaurante',
-        address: process.env.EMAIL_USER
+        address: process.env.EMAIL_FROM
+
       },
       to: destinatario,
       subject: `Pedido Confirmado #${ordenId} - Raíces 🎉`,
@@ -395,7 +392,8 @@ export const enviarEmailRecuperacion = async (destinatario, nombreCompleto, toke
     const mailOptions = {
       from: {
         name: 'Raíces - Restaurante',
-        address: process.env.EMAIL_USER
+        address: process.env.EMAIL_FROM
+
       },
       to: destinatario,
       subject: 'Recuperación de Contraseña - Raíces',
