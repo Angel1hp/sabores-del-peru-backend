@@ -16,7 +16,7 @@ export const procesarCheckout = async (req, res) => {
     metodo_pago,
     tipo_comprobante,
     ruc,
-    items
+    items,
   } = req.body;
 
   const client = await pool.connect();
@@ -232,7 +232,8 @@ export const procesarCheckout = async (req, res) => {
       itemsConNombres,  // ✅ Usar itemsConNombres que tiene los nombres correctos
       total,
       tipo_comprobante, // ← ESTA es la correcta
-  ruc
+      ruc,
+      impuesto
     )
       .then(resultado => {
         if (resultado.success) {

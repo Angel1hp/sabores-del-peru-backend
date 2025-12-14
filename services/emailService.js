@@ -96,7 +96,8 @@ export const enviarEmailConfirmacionPedido = async (
   items,
   total,
   tipo_comprobante, // "factura" | "boleta"
-  ruc
+  ruc,
+  impuesto
 ) => {
   try {
     /* ---------- Construir tabla de items ---------- */
@@ -143,6 +144,7 @@ export const enviarEmailConfirmacionPedido = async (
 
       <div style="background:#f0fdf4;border-left:4px solid #22c55e;padding:15px;margin:20px 0;">
         <p style="margin:6px 0;"><strong>Comprobante:</strong> ${numeroComprobante}</p>
+        <p style="margin:6px 0;"><strong>IGV (18%):</strong> S/ ${Number(impuesto).toFixed(2)}</p>
         <p style="margin:6px 0;"><strong>Total:</strong> S/ ${Number(total).toFixed(2)}</p>
 
         ${tipo_comprobante === "factura" ? `
