@@ -1,36 +1,43 @@
 // middlewares/adminMiddleware.js
 import jwt from "jsonwebtoken";
 
-// ✅ Usa una clave diferente para admin (más segura)
-const ADMIN_SECRET = process.env.ADMIN_JWT_SECRET || "admin_secret_key_change_in_production";
+/* =====================================================
+   CONFIGURACIÓN SEGURA
+===================================================== */
+if (!process.env.ADMIN_JWT_SECRET) {
+  throw new Error("❌ ADMIN_JWT_SECRET no está configurado en variables de entorno");
+}
 
-// =====================
-// VERIFICAR TOKEN ADMIN
-// =====================
+const ADMIN_SECRET = process.env.ADMIN_JWT_SECRET;
+
+/* =====================================================
+   VERIFICAR TOKEN ADMIN
+===================================================== */
 export const verificarTokenAdmin = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({
         success: false,
         message: "Token no proporcionado"
       });
     }
 
-    const token = authHeader.split(' ')[1];
-    
+    const token = authHeader.split(" ")[1];
+
+    // Verificar token con el SECRET exclusivo de admin
     const decoded = jwt.verify(token, ADMIN_SECRET);
-    
-    // Verificar que sea un token de admin
-    if (decoded.tipo !== 'admin') {
+
+    // Verificar que sea token de admin
+    if (decoded.tipo !== "admin") {
       return res.status(403).json({
         success: false,
         message: "No tienes permisos de administrador"
       });
     }
 
-    // Agregar datos del admin a la request
+    // Adjuntar info del admin a la request
     req.admin = {
       id: decoded.id,
       usuario: decoded.usuario,
@@ -41,21 +48,21 @@ export const verificarTokenAdmin = (req, res, next) => {
 
   } catch (error) {
     console.error("❌ Error verificando token admin:", error.message);
-    
-    if (error.name === 'TokenExpiredError') {
+
+    if (error.name === "TokenExpiredError") {
       return res.status(401).json({
         success: false,
         message: "Token expirado"
       });
     }
-    
-    if (error.name === 'JsonWebTokenError') {
+
+    if (error.name === "JsonWebTokenError") {
       return res.status(401).json({
         success: false,
         message: "Token inválido"
       });
     }
-    
+
     return res.status(401).json({
       success: false,
       message: "Error de autenticación"
@@ -63,9 +70,9 @@ export const verificarTokenAdmin = (req, res, next) => {
   }
 };
 
-// =====================
-// VERIFICAR ROL ESPECÍFICO
-// =====================
+/* =====================================================
+   VERIFICAR ROL (ADMIN / SUPERADMIN / ETC)
+===================================================== */
 export const verificarRol = (...rolesPermitidos) => {
   return (req, res, next) => {
     if (!req.admin) {
@@ -78,7 +85,7 @@ export const verificarRol = (...rolesPermitidos) => {
     if (!rolesPermitidos.includes(req.admin.rol)) {
       return res.status(403).json({
         success: false,
-        message: `Acceso denegado. Se requiere rol: ${rolesPermitidos.join(' o ')}`
+        message: `Acceso denegado. Se requiere rol: ${rolesPermitidos.join(" o ")}`
       });
     }
 
@@ -86,19 +93,19 @@ export const verificarRol = (...rolesPermitidos) => {
   };
 };
 
-// =====================
-// VERIFICAR PERMISOS (Opcional - para sistema más avanzado)
-// =====================
+/* =====================================================
+   VERIFICAR PERMISO (OPCIONAL)
+===================================================== */
 export const verificarPermiso = (permiso) => {
-  return async (req, res, next) => {
-    // Implementar lógica de permisos si lo necesitas
-    // Por ahora solo verificamos que esté autenticado
+  return (req, res, next) => {
     if (!req.admin) {
       return res.status(401).json({
         success: false,
         message: "No autenticado"
       });
     }
+
+    // Aquí puedes validar permisos específicos si luego los implementas
     next();
   };
 };

@@ -3,7 +3,11 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import pool from "../db/connection.js";
 
-const ADMIN_SECRET = process.env.ADMIN_JWT_SECRET || "ADMIN_SECRET_CHANGE_IN_PRODUCTION";
+if (!process.env.ADMIN_JWT_SECRET) {
+  throw new Error("❌ ADMIN_JWT_SECRET no está configurado en variables de entorno");
+}
+
+const ADMIN_SECRET = process.env.ADMIN_JWT_SECRET;
 
 // =====================
 // LOGIN ADMIN
